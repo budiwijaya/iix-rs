@@ -1,0 +1,3 @@
+/routing filter
+add append-bgp-communities=7597:3111 chain=from-RADNET
+add action=discard bgp-communities=0:4434 chain=to-RADNET

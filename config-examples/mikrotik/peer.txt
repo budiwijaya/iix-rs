@@ -1,0 +1,3 @@
+/routing bgp peer
+add in-filter=from-RADNET max-prefix-limit=100 max-prefix-restart-time=30m name=RADNET out-filter=to-RADNET remote-address=218.100.32.2 \
+    remote-as=4434 remove-private-as=yes ttl=default
