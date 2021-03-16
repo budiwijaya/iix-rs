@@ -1,0 +1,16 @@
+router bgp 65531
+ bgp router-id 192.168.1.2
+ neighbor 192.168.1.3 remote-as 65532
+ neighbor 192.168.1.3 description To.FRR3
+ neighbor 192.168.2.1 remote-as 65530
+ neighbor 192.168.2.1 description To.FRR-1
+ !
+ address-family ipv4 unicast
+    no neighbor 192.168.1.3 send-community all
+    neighbor 192.168.1.3 soft-reconfiguration inbound
+    neighbor 192.168.1.3 route-map FRR-3-in in
+    neighbor 192.168.1.3 route-map FRR-3-out out
+    neighbor 192.168.2.1 soft-reconfiguration inbound
+    neighbor 192.168.2.1 route-map FRR-1-in in
+    neighbor 192.168.2.1 route-map FRR-1-out out
+ exit-address-family

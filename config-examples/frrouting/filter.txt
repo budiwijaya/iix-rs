@@ -1,0 +1,23 @@
+bgp as-path access-list FRR-1 permit 65530
+bgp as-path access-list FRR-3 permit 65532
+!
+
+bgp community-list standard noadv-65532 seq 1 permit 0:65532
+bgp community-list standard noadv-65530 seq 1 permit 0:65530
+!
+
+route-map FRR-1-in permit 1
+ match as-path FRR-1
+!
+route-map FRR-1-out deny 1
+ match community noadv-65530
+!
+
+route-map FRR-3-in permit 1
+ match as-path FRR-3
+!
+route-map FRR-3-out deny 2
+ match community noadv-65532
+!
+route-map FRR-3-out permit 3
+!
