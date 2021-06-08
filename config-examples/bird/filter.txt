@@ -1,0 +1,210 @@
+# Fungsi ini untuk memblok bogon prefix
+function prefix_is_bogon()
+prefix set bogons_4;
+prefix set bogons_6;
+{
+	bogons_4 = [
+		# Default route
+		0.0.0.0/0,
+
+		# IANA - Local Identification
+		0.0.0.0/8{8,32},
+
+		# RFC 1918 - Private Use
+		10.0.0.0/8{8,32},
+
+		# IANA - Loopback
+		127.0.0.0/8{8,32},
+
+		# RFC 3927 - Link Local
+		169.254.0.0/16{16,32},
+
+		# RFC 1918 - Private Use
+		172.16.0.0/12{12,32},
+
+		# RFC 5737 - TEST-NET-1
+		192.0.2.0/24{24,32},
+
+		# RFC 3068 - 6to4 prefix
+		192.88.99.0/24{24,32},
+
+		# RFC 1918 - Private Use
+		192.168.0.0/16{16,32},
+
+		# RFC 2544 - Network Interconnect Device Benchmark Testing
+		198.18.0.0/15{15,32},
+
+		# RFC 5737 - TEST-NET-2
+		198.51.100.0/24{24,32},
+
+		# RFC 5737 - TEST-NET-3
+		203.0.113.0/24{24,32},
+
+		# RFC 5771 - Multcast (formerly Class D)
+		224.0.0.0/3{3,32},
+
+		# RFC 6598 - Shared Address Space
+		100.64.0.0/10{10,32}
+	];
+	bogons_6 = [
+		# Default route
+		::/0,
+
+		# loopback, unspecified, v4-mapped
+		::/8{8,128},
+
+		# RFC 6052 - IPv4-IPv6 Translation
+		64:ff9b::/96{96,128},
+
+		# RFC 6666 - reserved for Discard-Only Address Block
+		100::/8{8,128},
+
+		# RFC 4048 - Reserved by IETF
+		200::/7{7,128},
+
+		# RFC 4291 - Reserved by IETF
+		400::/6{6,128},
+
+		# RFC 4291 - Reserved by IETF
+		800::/5{5,128},
+
+		# RFC 4291 - Reserved by IETF
+		1000::/4{4,128},
+
+		# RFC 4380 - Teredo prefix
+		2001::/33{33,128},
+
+		# RFC 4380 - Teredo prefix
+		2001:0:8000::/33{33,128},
+
+		# RFC 5180 - Benchmarking
+		2001:2::/48{48,128},
+
+		# RFC 7450 - Automatic Multicast Tunneling
+		2001:3::/32{32,128},
+
+		# RFC 4843 - Deprecated ORCHID
+		2001:10::/28{28,128},
+
+		# RFC 7343 - ORCHIDv2
+		2001:20::/28{28,128},
+
+		# RFC 3849 - NON-ROUTABLE range to be used for documentation purpose
+		2001:db8::/32{32,128},
+
+		# RFC 3068 - 6to4 prefix
+		2002::/16{16,128},
+
+		# RFC 5156 - used for the 6bone but was returned
+		3ffe::/16{16,128},
+
+		# RFC 4291 - Reserved by IETF
+		4000::/3{3,128},
+
+		# RFC 5156 - used for the 6bone but was returned
+		5f00::/8{8,128},
+
+		# RFC 4291 - Reserved by IETF
+		6000::/3{3,128},
+
+		# RFC 4291 - Reserved by IETF
+		8000::/3{3,128},
+
+		# RFC 4291 - Reserved by IETF
+		a000::/3{3,128},
+
+		# RFC 4291 - Reserved by IETF
+		c000::/3{3,128},
+
+		# RFC 4291 - Reserved by IETF
+		e000::/4{4,128},
+
+		# RFC 4291 - Reserved by IETF
+		f000::/5{5,128},
+
+		# RFC 4291 - Reserved by IETF
+		f800::/6{6,128},
+
+		# RFC 4193 - Unique Local Unicast
+		fc00::/7{7,128},
+
+		# RFC 4291 - Link Local Unicast
+		fe80::/10{10,128},
+
+		# RFC 4291 - Reserved by IETF
+		fec0::/10{10,128},
+
+		# RFC 4291 - Multicast
+		ff00::/8{8,128}
+	];
+
+	if net.type = NET_IP4 then
+		if net ~ bogons_4 then return true;
+	if net.type = NET_IP6 then
+		if net ~ bogons_6 then return true;
+	return false;
+}
+
+# This function returns True if the length of 'net' prefix
+# falls within the range 'min'-'max' (included).
+function prefix_len_is_valid (int pref_len_min; int pref_len_max) {
+	if net.len < pref_len_min then return false;
+	if net.len > pref_len_max then return false;
+	return true;
+}
+
+# Daftar prefix milik ISP yang akan di advertise
+function OUR_PREFIXES ()
+prefix set prefixes_v4;
+prefix set prefixes_v6;
+{
+	prefixes_v4 = [
+		# None
+		103.123.96.0/22{22,24},
+	];
+
+	if net.type = NET_IP4 then
+		if net ~ prefixes_v4 then return true;
+
+	prefixes_v6 = [
+		# None
+		2403:9f40::/32{32,48}
+	];
+
+	if net.type = NET_IP6 then
+		if net ~ prefixes_v6 then return true;
+
+	return false;
+}
+
+# Filter ini akan melakukan advertise hanya IP yang sudah dedeklarasikan di OUR_PREFIXES
+filter ipv4_AS7597_out {
+	if OUR_PREFIXES()
+		then
+	{
+		
+		# jika ingin menambahkan bgp community bisa menggunakan syntax dibawah ini
+		# bgp_community.add ((0,58381));
+		# atau apabila menggunakan bgp large
+		# bgp_large_community.add((7597, 0, 58381));
+		# atau apabila menggunakan bgp extended community
+		# bgp_ext_community.add((rt, 0, 58381));
+		# Rujukan https://github.com/budiwijaya/iix-rs/blob/main/community/iix-community.txt
+		print "ACCEPT: Advertised prefix ", net, " to ",proto,;
+		accept;
+	}
+	# Reject all
+	reject;
+}
+
+# Filter ini akan melakukan penyaringan apabila
+# 1. prefix bogon termasuk default route
+# 2. prefix kurang lebih besar dar /24 dan lebih kecil dari /8
+filter ipv4_AS7597_in {
+	if prefix_is_bogon() then
+		{ reject "prefix is bogon - REJECTING ", net, " received from ",proto,; }
+	if !prefix_len_is_valid(8, 24) then
+		{ reject "prefix len [", net.len, "] not in 8-24 - REJECTING ", net," received from ",proto,; }
+	# Accept all
+	accept;
+}
